@@ -401,7 +401,7 @@ public readonly struct Fraction :
     long IConvertible.ToInt64(IFormatProvider? provider) => (long)this;
 
     /// <inheritdoc/>
-    [CLSCompliant(false), Pure]
+    [Pure]
     sbyte IConvertible.ToSByte(IFormatProvider? provider) => (sbyte)this;
 
     /// <inheritdoc/>
@@ -418,15 +418,15 @@ public readonly struct Fraction :
         ((IConvertible)(double)this).ToType(conversionType, provider);
 
     /// <inheritdoc/>
-    [CLSCompliant(false), Pure]
+    [Pure]
     ushort IConvertible.ToUInt16(IFormatProvider? provider) => (ushort)this;
 
     /// <inheritdoc/>
-    [CLSCompliant(false), Pure]
+    [Pure]
     uint IConvertible.ToUInt32(IFormatProvider? provider) => (uint)this;
 
     /// <inheritdoc/>
-    [CLSCompliant(false), Pure]
+    [Pure]
     ulong IConvertible.ToUInt64(IFormatProvider? provider) => (ulong)this;
 
     /// <inheritdoc/>
