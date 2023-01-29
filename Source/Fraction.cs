@@ -2,6 +2,7 @@
 namespace Emik.Numerics.Fractions;
 #pragma warning disable CS1591, SA1600
 /// <summary>Represents a fractional value.</summary>
+// ReSharper disable ConditionIsAlwaysTrueOrFalse
 [StructLayout(LayoutKind.Sequential)]
 public readonly struct Fraction :
     IConvertible,
@@ -20,7 +21,7 @@ public readonly struct Fraction :
     /// <param name="numerator">The numerator of this value.</param>
     /// <param name="denominator">The denominator of this value. Cannot be zero.</param>
     /// <exception cref="DivideByZeroException">The parameter <paramref name="denominator"/> is 0.</exception>
-    public Fraction(long numerator, long denominator = 1)
+    public Fraction(long numerator, [ValueRange(long.MinValue, -1), ValueRange(1, long.MaxValue)] long denominator = 1)
     {
         if (denominator is 0)
             throw new DivideByZeroException();
@@ -31,56 +32,87 @@ public readonly struct Fraction :
     }
 
     /// <summary>Gets the value representing the maximum possible value.</summary>
-    public static Fraction MaxValue
-    {
-        [Pure] get => long.MaxValue;
-    }
+    [Pure]
+    public static Fraction MaxValue => long.MaxValue;
 
     /// <summary>Gets the value representing the minimum possible value.</summary>
-    public static Fraction MinValue
-    {
-        [Pure] get => long.MinValue;
-    }
+    [Pure]
+    public static Fraction MinValue => long.MinValue;
 
     /// <summary>Gets the value representing negative one.</summary>
-    public static Fraction NegativeOne
-    {
-        [Pure] get => -1;
-    }
+    [Pure]
+    public static Fraction NegativeOne => -1;
 
     /// <summary>Gets the value representing one.</summary>
-    public static Fraction One
-    {
-        [Pure] get => 1;
-    }
+    [Pure]
+    public static Fraction One => 1;
 
     /// <summary>Gets the value representing zero.</summary>
-    public static Fraction Zero
-    {
-        [Pure] get => 0;
-    }
+    [Pure]
+    public static Fraction Zero => 0;
 
-    /// <summary>Gets the radix of this type.</summary>
-    public static int Radix
-    {
-        [Pure, ValueRange(2)] get => 2;
-    }
+    /// <summary>Gets a value indicating whether the value is even.</summary>
+    [Pure]
+    public bool IsEven => Numerator % 2 is 0;
+
+    /// <summary>Gets a value indicating whether the value is the minimum possible value.</summary>
+    [Pure]
+    public bool IsMinValue => Numerator is long.MinValue;
+
+    /// <summary>Gets a value indicating whether the value is the maximum possible value.</summary>
+    [Pure]
+    public bool IsMaxValue => Numerator is long.MaxValue;
+
+    /// <summary>Gets a value indicating whether the value is negative.</summary>
+    [Pure]
+    public bool IsNegative => !IsPositive;
+
+    /// <summary>Gets a value indicating whether the value is negative one.</summary>
+    [Pure]
+    public bool IsNegativeOne => Numerator is -1;
+
+    /// <summary>Gets a value indicating whether the value is odd.</summary>
+    [Pure]
+    public bool IsOdd => !IsEven;
+
+    /// <summary>Gets a value indicating whether the value is one.</summary>
+    [Pure]
+    public bool IsOne => Numerator is 1;
+
+    /// <summary>Gets a value indicating whether the value is positive.</summary>
+    [Pure]
+    public bool IsPositive => Numerator >= 0;
+
+    /// <summary>Gets a value indicating whether the value is a power of two.</summary>
+    [Pure]
+    public bool IsPow2 => (Numerator & Numerator - 1) is 0;
+
+    /// <summary>Gets a value indicating whether the value is zero.</summary>
+    [Pure]
+    public bool IsZero => Numerator is 0;
+
+    /// <inheritdoc cref="Math.Sign(int)"/>
+    [Pure, ValueRange(-1, 1)]
+    public int Sign => Math.Sign(Numerator);
 
     /// <summary>Gets the denominator.</summary>
-    public long Denominator
-    {
-        // ReSharper disable once ConditionIsAlwaysTrueOrFalse
-        [Pure, ValueRange(1, long.MaxValue)] get => _denominator is 0 ? 1 : _denominator;
-    }
+    [Pure, ValueRange(1, long.MaxValue)]
+    public long Denominator => _denominator is 0 ? 1 : _denominator;
 
     /// <summary>Gets the numerator.</summary>
     // ReSharper disable once ConvertToAutoProperty
 #pragma warning disable RCS1085
-    public long Numerator
-    {
-        [Pure] get => _numerator;
-    }
+    [Pure]
+    public long Numerator => _numerator;
 #pragma warning restore RCS1085
+
+    /// <inheritdoc cref="Math.Abs(int)"/>
+    [Pure]
+    public Fraction Abs => IsPositive ? this : -this;
+
+    /// <inheritdoc cref="Math.Abs(int)"/>
+    [Pure]
+    public Fraction Invert => -this;
 
     [Pure]
     public static bool operator ==(Fraction left, Fraction right) =>
@@ -198,7 +230,7 @@ public readonly struct Fraction :
     public static explicit operator Fraction(ulong value) => new(unchecked((long)value));
 
     [CLSCompliant(false), Pure]
-    public static explicit operator bool(Fraction value) => value.Numerator >= 0;
+    public static explicit operator bool(Fraction value) => value.Numerator is not 0;
 
     [Pure]
     public static explicit operator byte(Fraction value) => unchecked((byte)(value.Numerator / value.Denominator));
@@ -240,42 +272,6 @@ public readonly struct Fraction :
     [Pure]
     public static explicit operator string(Fraction value) => value.ToString(CultureInfo.InvariantCulture);
 
-    /// <summary>Determines whether the value is even.</summary>
-    /// <param name="value">The value to check.</param>
-    /// <returns><see langword="true"/> if even, <see langword="false"/>.</returns>
-    [Pure]
-    public static bool IsEvenInteger(Fraction value) => value.Numerator % 2 is 0;
-
-    /// <summary>Determines whether the value is negative.</summary>
-    /// <param name="value">The value to check.</param>
-    /// <returns><see langword="true"/> if negative, <see langword="false"/>.</returns>
-    [Pure]
-    public static bool IsNegative(Fraction value) => !(bool)value;
-
-    /// <summary>Determines whether the value is odd.</summary>
-    /// <param name="value">The value to check.</param>
-    /// <returns><see langword="true"/> if odd, <see langword="false"/>.</returns>
-    [Pure]
-    public static bool IsOddInteger(Fraction value) => value.Numerator % 2 is 1;
-
-    /// <summary>Determines whether the value is positive.</summary>
-    /// <param name="value">The value to check.</param>
-    /// <returns><see langword="true"/> if positive, <see langword="false"/>.</returns>
-    [Pure]
-    public static bool IsPositive(Fraction value) => (bool)value;
-
-    /// <summary>Determines whether the value is a power of two.</summary>
-    /// <param name="value">The value to check.</param>
-    /// <returns><see langword="true"/> if a power of two; otherwise, <see langword="false"/>.</returns>
-    [Pure]
-    public static bool IsPow2(Fraction value) => (value.Numerator & value.Numerator - 1) is 0;
-
-    /// <summary>Determines whether the value is zero.</summary>
-    /// <param name="value">The value to check.</param>
-    /// <returns><see langword="true"/> if zero; otherwise, <see langword="false"/>.</returns>
-    [Pure]
-    public static bool IsZero(Fraction value) => value.Numerator is 0;
-
     /// <inheritdoc cref="long.TryParse(string, NumberStyles, IFormatProvider, out long)"/>
     [Pure]
     public static bool TryParse(string? s, IFormatProvider? provider, out Fraction result) =>
@@ -312,18 +308,6 @@ public readonly struct Fraction :
 
         return ret;
     }
-
-    /// <inheritdoc cref="Math.Abs(int)"/>
-    [Pure]
-    public static Fraction Abs(Fraction value) => IsPositive(value) ? value : -value;
-
-    /// <inheritdoc cref="Math.Max(int, int)"/>
-    [Pure]
-    public static Fraction Min(Fraction x, Fraction y) => x < y ? x : y;
-
-    /// <inheritdoc cref="Math.Max(int, int)"/>
-    [Pure]
-    public static Fraction Max(Fraction x, Fraction y) => x > y ? x : y;
 
     /// <inheritdoc cref="long.Parse(string, IFormatProvider)"/>
     [Pure]
@@ -448,6 +432,22 @@ public readonly struct Fraction :
     [Pure]
     public DateTime ToDateTime(IFormatProvider? provider) => ((IConvertible)(long)this).ToDateTime(provider);
 
+    /// <inheritdoc cref="Math.DivRem(int, int, out int)"/>
+    [Pure]
+    public Fraction DivRem(Fraction other, out Fraction remainder)
+    {
+        remainder = this % other;
+        return this / other;
+    }
+
+    /// <inheritdoc cref="Math.Max(int, int)"/>
+    [Pure]
+    public Fraction Min(Fraction other) => this < other ? this : other;
+
+    /// <inheritdoc cref="Math.Max(int, int)"/>
+    [Pure]
+    public Fraction Max(Fraction other) => this > other ? this : other;
+
     /// <inheritdoc/>
     [Pure]
     public TypeCode GetTypeCode() => TypeCode.Object;
@@ -455,7 +455,10 @@ public readonly struct Fraction :
     /// <summary>Simplifies the numbers before being passed to the fraction.</summary>
     /// <param name="numerator">The numerator to simplify.</param>
     /// <param name="denominator">The denominator to simplify.</param>
-    static void Simplify(ref long numerator, ref long denominator)
+    static void Simplify(
+        ref long numerator,
+        [ValueRange(long.MinValue, -1), ValueRange(1, long.MaxValue)] ref long denominator
+    )
     {
         if (numerator is 0)
         {
@@ -480,8 +483,11 @@ public readonly struct Fraction :
     /// <returns>
     /// The greatest common denominator of the parameters <paramref name="left"/> and <paramref name="right"/>.
     /// </returns>
-    [NonNegativeValue, Pure]
-    static long GreatestCommonDenominator(long left, long right)
+    [NonNegativeValue, Pure, ValueRange(1, long.MaxValue)]
+    static long GreatestCommonDenominator(
+        long left,
+        [ValueRange(long.MinValue, -1), ValueRange(1, long.MaxValue)] long right
+    )
     {
         left = Math.Abs(left);
         right = Math.Abs(right);
