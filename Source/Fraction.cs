@@ -110,9 +110,9 @@ public readonly struct Fraction :
     [Pure]
     public Fraction Abs => IsPositive ? this : -this;
 
-    /// <inheritdoc cref="Math.Abs(int)"/>
+    /// <summary>Gets the inverted value.</summary>
     [Pure]
-    public Fraction Invert => -this;
+    public Fraction Inv => -this;
 
     [Pure]
     public static bool operator ==(Fraction left, Fraction right) =>
@@ -226,6 +226,9 @@ public readonly struct Fraction :
     [CLSCompliant(false), Pure]
     public static implicit operator Fraction(uint value) => new(value);
 
+    [Pure]
+    public static explicit operator Fraction(string value) => Parse(value);
+
     [CLSCompliant(false), Pure]
     public static explicit operator Fraction(ulong value) => new(unchecked((long)value));
 
@@ -273,6 +276,11 @@ public readonly struct Fraction :
     public static explicit operator string(Fraction value) =>
         value.Denominator is 1 ? $"{value.Numerator}" : $"{value.Numerator}/{value.Denominator}";
 
+    /// <inheritdoc cref="long.TryParse(string, out long)"/>
+    [Pure]
+    public static bool TryParse(string? s, out Fraction result) =>
+        TryParse(s, CultureInfo.InvariantCulture, out result);
+
     /// <inheritdoc cref="long.TryParse(string, NumberStyles, IFormatProvider, out long)"/>
     [Pure]
     public static bool TryParse(string? s, IFormatProvider? provider, out Fraction result) =>
@@ -297,6 +305,10 @@ public readonly struct Fraction :
 
         return ret;
     }
+
+    /// <inheritdoc cref="long.Parse(string)"/>
+    [Pure]
+    public static Fraction Parse(string s) => Parse(s, CultureInfo.InvariantCulture);
 
     /// <inheritdoc cref="long.Parse(string, IFormatProvider)"/>
     [Pure]
