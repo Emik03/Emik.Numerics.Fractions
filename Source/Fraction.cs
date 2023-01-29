@@ -270,7 +270,8 @@ public readonly struct Fraction :
     public static explicit operator decimal(Fraction value) => (decimal)value.Numerator / value.Denominator;
 
     [Pure]
-    public static explicit operator string(Fraction value) => value.ToString(CultureInfo.InvariantCulture);
+    public static explicit operator string(Fraction value) =>
+        value.Denominator is 1 ? $"{value.Numerator}" : $"{value.Numerator}/{value.Denominator}";
 
     /// <inheritdoc cref="long.TryParse(string, NumberStyles, IFormatProvider, out long)"/>
     [Pure]
@@ -286,20 +287,8 @@ public readonly struct Fraction :
         if (s is null)
             return false;
 
-        var slash = -1;
-
-        for (var i = 0; i < s.Length; i++)
-            if (s[i] is '/' && slash is var temp && ((slash = i) == s.Length - 1 || temp is not -1))
-                return false;
-
-        // ReSharper disable ReplaceSubstringWithRangeIndexer
-#pragma warning disable CA1846, IDE0057
-        if (slash is not -1)
-            return long.TryParse(s.Substring(0, slash), style, provider, out var num1) &&
-                long.TryParse(s.Substring(slash + 1, s.Length - (slash + 1)), style, provider, out var num2) &&
-                num2 is not 0 &&
-                (result = new(num1, num2)) is var _;
-#pragma warning restore CA1846, IDE0057
+        if (FindSlash(s) is { } slash)
+            return ParseWithSlash(s, style, provider, ref result, slash);
 
         var ret = long.TryParse(s, style, provider, out var num);
 
@@ -361,7 +350,7 @@ public readonly struct Fraction :
 
     /// <inheritdoc />
     [Pure]
-    public override string ToString() => Denominator is 1 ? $"{Numerator}" : $"{Numerator}/{Denominator}";
+    public override string ToString() => (string)this;
 
     /// <inheritdoc />
     [Pure]
@@ -369,68 +358,68 @@ public readonly struct Fraction :
 
     /// <inheritdoc/>
     [Pure]
-    public bool ToBoolean(IFormatProvider? provider) => (bool)this;
+    bool IConvertible.ToBoolean(IFormatProvider? provider) => (bool)this;
 
     /// <inheritdoc/>
     [Pure]
-    public byte ToByte(IFormatProvider? provider) => (byte)this;
+    byte IConvertible.ToByte(IFormatProvider? provider) => (byte)this;
 
     /// <inheritdoc/>
     [Pure]
-    public char ToChar(IFormatProvider? provider) => (char)this;
+    char IConvertible.ToChar(IFormatProvider? provider) => (char)this;
 
     /// <inheritdoc/>
     [Pure]
-    public decimal ToDecimal(IFormatProvider? provider) => (decimal)this;
+    decimal IConvertible.ToDecimal(IFormatProvider? provider) => (decimal)this;
 
     /// <inheritdoc/>
     [Pure]
-    public double ToDouble(IFormatProvider? provider) => (double)this;
+    double IConvertible.ToDouble(IFormatProvider? provider) => (double)this;
 
     /// <inheritdoc/>
     [Pure]
-    public short ToInt16(IFormatProvider? provider) => (short)this;
+    short IConvertible.ToInt16(IFormatProvider? provider) => (short)this;
 
     /// <inheritdoc/>
     [Pure]
-    public int ToInt32(IFormatProvider? provider) => (int)this;
+    int IConvertible.ToInt32(IFormatProvider? provider) => (int)this;
 
     /// <inheritdoc/>
     [Pure]
-    public long ToInt64(IFormatProvider? provider) => (long)this;
+    long IConvertible.ToInt64(IFormatProvider? provider) => (long)this;
 
     /// <inheritdoc/>
     [CLSCompliant(false), Pure]
-    public sbyte ToSByte(IFormatProvider? provider) => (sbyte)this;
+    sbyte IConvertible.ToSByte(IFormatProvider? provider) => (sbyte)this;
 
     /// <inheritdoc/>
     [Pure]
-    public float ToSingle(IFormatProvider? provider) => (float)this;
+    float IConvertible.ToSingle(IFormatProvider? provider) => (float)this;
 
     /// <inheritdoc/>
     [Pure]
-    public string ToString(IFormatProvider? provider) => (string)this;
+    string IConvertible.ToString(IFormatProvider? provider) => (string)this;
 
     /// <inheritdoc/>
     [Pure]
-    public object ToType(Type conversionType, IFormatProvider? provider) =>
-        ((IConvertible)ToDouble(provider)).ToType(conversionType, provider);
+    object IConvertible.ToType(Type conversionType, IFormatProvider? provider) =>
+        ((IConvertible)(double)this).ToType(conversionType, provider);
 
     /// <inheritdoc/>
     [CLSCompliant(false), Pure]
-    public ushort ToUInt16(IFormatProvider? provider) => (ushort)this;
+    ushort IConvertible.ToUInt16(IFormatProvider? provider) => (ushort)this;
 
     /// <inheritdoc/>
     [CLSCompliant(false), Pure]
-    public uint ToUInt32(IFormatProvider? provider) => (uint)this;
+    uint IConvertible.ToUInt32(IFormatProvider? provider) => (uint)this;
 
     /// <inheritdoc/>
     [CLSCompliant(false), Pure]
-    public ulong ToUInt64(IFormatProvider? provider) => (ulong)this;
+    ulong IConvertible.ToUInt64(IFormatProvider? provider) => (ulong)this;
 
     /// <inheritdoc/>
     [Pure]
-    public DateTime ToDateTime(IFormatProvider? provider) => ((IConvertible)(long)this).ToDateTime(provider);
+    DateTime IConvertible.ToDateTime(IFormatProvider? provider) => ((IConvertible)(long)this).ToDateTime(provider);
 
     /// <inheritdoc cref="Math.DivRem(int, int, out int)"/>
     [Pure]
@@ -475,6 +464,51 @@ public readonly struct Fraction :
 
         numerator *= -1;
         denominator *= -1;
+    }
+
+    /// <summary>Parses the number with the slash.</summary>
+    /// <param name="s">The string to parse.</param>
+    /// <param name="style">The styling rules for parsing.</param>
+    /// <param name="provider">The provider to use.</param>
+    /// <param name="result">The resulting value to set if parsing succeeded.</param>
+    /// <param name="slash">The index of the slash character.</param>
+    /// <returns>The value <see langword="true"/> if parsing succeeded; otherwise, <see langword="false"/>.</returns>
+    // ReSharper disable ReplaceSubstringWithRangeIndexer
+#pragma warning disable CA1846, IDE0057
+    static bool ParseWithSlash(
+        string s,
+        NumberStyles style,
+        IFormatProvider? provider,
+        ref Fraction result,
+        int slash
+    ) =>
+        long.TryParse(s.Substring(0, slash), style, provider, out var num1) &&
+        long.TryParse(s.Substring(slash + 1, s.Length - (slash + 1)), style, provider, out var num2) &&
+        num2 is not 0 &&
+        (result = new(num1, num2)) is var _;
+#pragma warning restore CA1846, IDE0057
+
+    /// <summary>Finds the slash, if one exists.</summary>
+    /// <param name="s">The string to check.</param>
+    /// <returns>The value containing the index of the slash character, if any.</returns>
+    static int? FindSlash(string s)
+    {
+        int slashIndex = 0, slashCount = 0;
+
+        for (var i = 0; i < s.Length; i++)
+        {
+            if (s[i] is not '/')
+                continue;
+
+            slashCount++;
+
+            if (i == s.Length - 1 || slashCount > 1)
+                return null;
+
+            slashIndex = i;
+        }
+
+        return slashIndex;
     }
 
     /// <summary>Gets the greatest common denominator between two numbers.</summary>
