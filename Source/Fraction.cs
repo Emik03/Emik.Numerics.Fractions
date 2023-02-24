@@ -41,7 +41,7 @@ public readonly struct Fraction :
 
     /// <summary>Gets the value representing negative one.</summary>
     [Pure]
-    public static Fraction NegativeOne => -1;
+    public static Fraction NegativeOne => unchecked(-1);
 
     /// <summary>Gets the value representing one.</summary>
     [Pure]
@@ -85,7 +85,7 @@ public readonly struct Fraction :
 
     /// <summary>Gets a value indicating whether the value is a power of two.</summary>
     [Pure]
-    public bool IsPow2 => (Numerator & Numerator - 1) is 0;
+    public bool IsPow2 => unchecked((Numerator & Numerator - 1) is 0);
 
     /// <summary>Gets a value indicating whether the value is zero.</summary>
     [Pure]
@@ -108,11 +108,11 @@ public readonly struct Fraction :
 
     /// <inheritdoc cref="Math.Abs(int)"/>
     [Pure]
-    public Fraction Abs => IsPositive ? this : -this;
+    public Fraction Abs => unchecked(IsPositive ? this : -this);
 
     /// <summary>Gets the inverted value.</summary>
     [Pure]
-    public Fraction Inv => -this;
+    public Fraction Inv => unchecked(-this);
 
     [Pure]
     public static bool operator ==(Fraction left, Fraction right) =>
@@ -124,8 +124,8 @@ public readonly struct Fraction :
     // While division is slower, check first to make overflows less likely.
     [Pure]
     public static bool operator <(Fraction left, Fraction right) =>
-        left.Numerator / left.Denominator < right.Numerator / right.Denominator ||
-        left.Numerator * right.Denominator < right.Numerator * left.Denominator;
+        unchecked(left.Numerator / left.Denominator < right.Numerator / right.Denominator ||
+            left.Numerator * right.Denominator < right.Numerator * left.Denominator);
 
     [Pure]
     public static bool operator >(Fraction left, Fraction right) => right < left;
@@ -140,48 +140,74 @@ public readonly struct Fraction :
     public static Fraction operator +(Fraction value) => value;
 
     [Pure]
-    public static Fraction operator -(Fraction value) => new(-value.Numerator, value.Denominator);
+    public static Fraction operator -(Fraction value) => unchecked(new(-value.Numerator, value.Denominator));
+
+    [Pure]
+    public static Fraction operator checked -(Fraction value) => checked(new(-value.Numerator, value.Denominator));
 
     [Pure]
     public static Fraction operator !(Fraction value) => new(value.Denominator, value.Numerator);
 
     [Pure]
-    public static Fraction operator ++(Fraction value) => value + 1;
+    public static Fraction operator ++(Fraction value) => unchecked(value + 1);
 
     [Pure]
-    public static Fraction operator --(Fraction value) => value - 1;
+    public static Fraction operator checked ++(Fraction value) => checked(value + 1);
+
+    [Pure]
+    public static Fraction operator --(Fraction value) => unchecked(value - 1);
+
+    [Pure]
+    public static Fraction operator checked --(Fraction value) => checked(value - 1);
 
     [Pure]
     public static Fraction operator +(Fraction left, Fraction right) =>
-        new(
+        unchecked(new(
             left.Numerator * right.Denominator + right.Numerator * left.Denominator,
             left.Denominator * right.Denominator
-        );
+        ));
 
     [Pure]
-    public static Fraction operator -(Fraction left, Fraction right) => left + -right;
+    public static Fraction operator checked +(Fraction left, Fraction right) =>
+        checked(new(
+            left.Numerator * right.Denominator + right.Numerator * left.Denominator,
+            left.Denominator * right.Denominator
+        ));
+
+    [Pure]
+    public static Fraction operator -(Fraction left, Fraction right) => unchecked(left + -right);
+
+    [Pure]
+    public static Fraction operator checked -(Fraction left, Fraction right) => checked(left + -right);
 
     [Pure]
     public static Fraction operator *(Fraction left, Fraction right) =>
-        new(left.Numerator * right.Numerator, left.Denominator * right.Denominator);
+        unchecked(new(left.Numerator * right.Numerator, left.Denominator * right.Denominator));
 
     [Pure]
-    public static Fraction operator /(Fraction left, Fraction right) => left * !right;
+    public static Fraction operator checked *(Fraction left, Fraction right) =>
+        checked(new(left.Numerator * right.Numerator, left.Denominator * right.Denominator));
+
+    [Pure]
+    public static Fraction operator /(Fraction left, Fraction right) => unchecked(left * !right);
+
+    [Pure]
+    public static Fraction operator checked /(Fraction left, Fraction right) => checked(left * !right);
 
     [Pure]
     public static Fraction operator %(Fraction left, Fraction right) =>
-        right.Denominator is 1
+        unchecked(right.Denominator is 1
             ? new(left.Numerator % right.Numerator, left.Denominator)
             : new(
                 left.Numerator * right.Denominator % (right.Numerator * left.Denominator),
                 left.Denominator * right.Denominator
-            );
+            ));
 
     [Pure]
-    public static Fraction operator <<(Fraction value, int shiftAmount) => value * (1L << shiftAmount);
+    public static Fraction operator <<(Fraction value, int shiftAmount) => unchecked(value * (1L << shiftAmount));
 
     [Pure]
-    public static Fraction operator >> (Fraction value, int shiftAmount) => value / (1L << shiftAmount);
+    public static Fraction operator >> (Fraction value, int shiftAmount) => unchecked(value / (1L << shiftAmount));
 
     [Pure]
     public static Fraction operator >>> (Fraction value, int shiftAmount) =>
@@ -230,7 +256,10 @@ public readonly struct Fraction :
     public static explicit operator Fraction(string value) => Parse(value);
 
     [CLSCompliant(false), Pure]
-    public static explicit operator Fraction(ulong value) => new(unchecked((long)value));
+    public static explicit operator Fraction(ulong value) => unchecked(new((long)value));
+
+    [CLSCompliant(false), Pure]
+    public static explicit operator checked Fraction(ulong value) => checked(new((long)value));
 
     [CLSCompliant(false), Pure]
     public static explicit operator bool(Fraction value) => value.Numerator is not 0;
@@ -239,11 +268,22 @@ public readonly struct Fraction :
     public static explicit operator byte(Fraction value) => unchecked((byte)(value.Numerator / value.Denominator));
 
     [Pure]
+    public static explicit operator checked byte(Fraction value) =>
+        checked((byte)(value.Numerator / value.Denominator));
+
+    [Pure]
     public static explicit operator char(Fraction value) =>
         unchecked((char)(ushort)(value.Numerator / value.Denominator));
 
     [Pure]
+    public static explicit operator checked char(Fraction value) =>
+        checked((char)(ushort)(value.Numerator / value.Denominator));
+
+    [Pure]
     public static explicit operator int(Fraction value) => unchecked((int)(value.Numerator / value.Denominator));
+
+    [Pure]
+    public static explicit operator checked int(Fraction value) => checked((int)(value.Numerator / value.Denominator));
 
     [Pure]
     public static explicit operator long(Fraction value) => value.Numerator / value.Denominator;
@@ -251,17 +291,37 @@ public readonly struct Fraction :
     [Pure]
     public static explicit operator short(Fraction value) => unchecked((short)(value.Numerator / value.Denominator));
 
+    [Pure]
+    public static explicit operator checked short(Fraction value) =>
+        checked((short)(value.Numerator / value.Denominator));
+
     [CLSCompliant(false), Pure]
     public static explicit operator sbyte(Fraction value) => unchecked((sbyte)(value.Numerator / value.Denominator));
+
+    [CLSCompliant(false), Pure]
+    public static explicit operator checked sbyte(Fraction value) =>
+        checked((sbyte)(value.Numerator / value.Denominator));
 
     [CLSCompliant(false), Pure]
     public static explicit operator ushort(Fraction value) => unchecked((ushort)(value.Numerator / value.Denominator));
 
     [CLSCompliant(false), Pure]
+    public static explicit operator checked ushort(Fraction value) =>
+        checked((ushort)(value.Numerator / value.Denominator));
+
+    [CLSCompliant(false), Pure]
     public static explicit operator uint(Fraction value) => unchecked((uint)(value.Numerator / value.Denominator));
 
     [CLSCompliant(false), Pure]
+    public static explicit operator checked uint(Fraction value) =>
+        checked((uint)(value.Numerator / value.Denominator));
+
+    [CLSCompliant(false), Pure]
     public static explicit operator ulong(Fraction value) => unchecked((ulong)(value.Numerator / value.Denominator));
+
+    [CLSCompliant(false), Pure]
+    public static explicit operator checked ulong(Fraction value) =>
+        checked((ulong)(value.Numerator / value.Denominator));
 
     [Pure]
     public static explicit operator float(Fraction value) => (float)value.Numerator / value.Denominator;
@@ -438,7 +498,7 @@ public readonly struct Fraction :
     public Fraction DivRem(Fraction other, out Fraction remainder)
     {
         remainder = this % other;
-        return this / other;
+        return unchecked(this / other);
     }
 
     /// <inheritdoc cref="Math.Max(int, int)"/>
@@ -474,8 +534,8 @@ public readonly struct Fraction :
         if (denominator >= 0)
             return;
 
-        numerator *= -1;
-        denominator *= -1;
+        _ = unchecked(numerator *= -1);
+        _ = unchecked(denominator *= -1);
     }
 
     /// <summary>Parses the number with the slash.</summary>
@@ -495,7 +555,7 @@ public readonly struct Fraction :
         int slash
     ) =>
         long.TryParse(s.Substring(0, slash), style, provider, out var num1) &&
-        long.TryParse(s.Substring(slash + 1, s.Length - (slash + 1)), style, provider, out var num2) &&
+        unchecked(long.TryParse(s.Substring(slash + 1, s.Length - (slash + 1)), style, provider, out var num2)) &&
         num2 is not 0 &&
         (result = new(num1, num2)) is var _;
 #pragma warning restore CA1846, IDE0057
@@ -507,14 +567,14 @@ public readonly struct Fraction :
     {
         int slashIndex = 0, slashCount = 0;
 
-        for (var i = 0; i < s.Length; i++)
+        for (var i = 0; i < s.Length; _ = unchecked(i++))
         {
             if (s[i] is not '/')
                 continue;
 
             slashCount++;
 
-            if (i == s.Length - 1 || slashCount > 1)
+            if (i == unchecked(s.Length - 1) || slashCount > 1)
                 return null;
 
             slashIndex = i;
