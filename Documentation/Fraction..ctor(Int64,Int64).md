@@ -24,4 +24,4 @@ The denominator of this value. Cannot be zero.
 #### Exceptions
 
 [System.DivideByZeroException](https://docs.microsoft.com/en-us/dotnet/api/System.DivideByZeroException 'System.DivideByZeroException')  
-The parameter [denominator](Fraction..ctor.4jaBz3z6Vu7JBGqmoLCAog.md#Emik.Numerics.Fractions.Fraction.Fraction(long,long).denominator 'Emik.Numerics.Fractions.Fraction.Fraction(long, long).denominator') is 0.
+The parameter [denominator](Fraction..ctor(Int64,Int64).md#Emik.Numerics.Fractions.Fraction.Fraction(long,long).denominator 'Emik.Numerics.Fractions.Fraction.Fraction(long, long).denominator') is 0.
