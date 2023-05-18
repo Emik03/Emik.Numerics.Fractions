@@ -6,4 +6,7 @@
         <RepositoryUrl>https://github.com/Emik03/Emik.Numerics.Fractions</RepositoryUrl>
         <Description>Contains a basic fractional type that represents a numerator and denominator.</Description>
     </PropertyGroup>
+    <ItemGroup>
+        <PackageReference Remove="UnitGenerator"/>
+    </ItemGroup>
 </Project>

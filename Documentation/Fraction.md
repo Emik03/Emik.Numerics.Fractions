@@ -18,7 +18,7 @@ Implements [System.IConvertible](https://docs.microsoft.com/en-us/dotnet/api/Sys
 
 | Constructors | |
 | :--- | :--- |
-| [Fraction(long, long)](Fraction..ctor(Int64,Int64).md 'Emik.Numerics.Fractions.Fraction.Fraction(long, long)') | Initializes a new instance of the [Fraction](Fraction.md 'Emik.Numerics.Fractions.Fraction') struct. |
+| [Fraction(long, long)](Fraction..ctor(long,long).md 'Emik.Numerics.Fractions.Fraction.Fraction(long, long)') | Initializes a new instance of the [Fraction](Fraction.md 'Emik.Numerics.Fractions.Fraction') struct. |
 
 | Properties | |
 | :--- | :--- |
@@ -43,4 +43,4 @@ Implements [System.IConvertible](https://docs.microsoft.com/en-us/dotnet/api/Sys
 
 | Methods | |
 | :--- | :--- |
-| [Deconstruct(long, long)](Fraction.Deconstruct(Int64&,Int64&).md 'Emik.Numerics.Fractions.Fraction.Deconstruct(long, long)') | Deconstructs the instance with its components. |
+| [Deconstruct(long, long)](Fraction.Deconstruct(long&,long&).md 'Emik.Numerics.Fractions.Fraction.Deconstruct(long, long)') | Deconstructs the instance with its components. |
