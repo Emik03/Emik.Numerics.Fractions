@@ -2,6 +2,7 @@
 <Project Sdk="Microsoft.NET.Sdk">
     <PropertyGroup>
         <FileVersion>3</FileVersion>
+        <CopyrightSince>2023</CopyrightSince>
         <TargetFrameworks>netstandard2.0;netstandard1.3;net40;net20</TargetFrameworks>
         <RepositoryUrl>https://github.com/Emik03/Emik.Numerics.Fractions</RepositoryUrl>
         <Description>Contains a basic fractional type that represents a numerator and denominator.</Description>
